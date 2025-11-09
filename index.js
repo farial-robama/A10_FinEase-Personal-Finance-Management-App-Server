@@ -26,7 +26,10 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // await client.connect();
+    await client.connect();
+    const db = client.db("FineEase-db");
+    const collection = db.collection("transactions");
+
     app.post('/transactions', async (req,res) => {
         try{
             const transaction = req.body;
@@ -35,17 +38,28 @@ async function run() {
         return res.status(400).json({message: "Missing required fields"})
     }
 
-    const db = client.db("FineEase-db");
-    const collection = db.collection("transactions");
-
-    const result = await collection.insertOne({...transaction, cratedAt: new Date()});
-    res.status(201).json({message: "Transaction added successfully!", id: result.insertedId})
+    transaction.cratedAt = new Date()
+    const result = await transactionCollection.insertOne(transaction);
+    res.status(201).send({message: "Transaction added successfully!", id: result.insertedId})
         } 
         catch(err) {
             console.error(err)
-            res.status(500).json({message: "Server error"})
+            res.status(500).send({message: "Server error"})
         }
     })
+
+    app.get('/transactions', async (req,res) => {
+        try {
+            const cursor = transactionCollection.find();
+            const result = await cursor.toArray()
+            res.status(200).send(result)
+        } catch(err) {
+            console.error(err)
+            res.status(500).send({message: "Server error"})
+        }
+    })
+
+    
      
 
     await client.db("admin").command({ ping: 1 });
