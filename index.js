@@ -82,6 +82,24 @@ async function run() {
         }
     })
 
+
+    // Get single transaction by id
+    app.get('/transactions/id/:id', async (req, res) => {
+        try {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const transaction = await transactionCollection.findOne(query)
+
+            if (!transaction) {
+                return res.status(404).send({ message: "Transaction not found" })
+            }
+            res.status(200).send(transaction)
+        } catch (err) {
+            console.error(err)
+            res.status(500).send({ message: "Error fetching transaction details "})
+        }
+    })
+
     // Get User Specific Transactions
     app.get('/transactions/:email', async (req, res) => {
         try {
